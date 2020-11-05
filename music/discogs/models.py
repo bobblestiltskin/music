@@ -27,3 +27,5 @@ class Item(models.Model):
     format = models.ForeignKey(Format, on_delete=models.CASCADE)
     released = models.DateTimeField('date released')
     release_id = models.IntegerField(default=0)
+    def __str__(self):
+        return self.release_id # maybe do more here when we decide what is good
