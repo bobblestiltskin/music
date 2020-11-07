@@ -19,10 +19,14 @@ def index(request):
 #    release_id = models.IntegerField(default=0)
 
 def artist_info(request, artist_id):
+    artist_list = get_list_or_404(Item, artist=artist_id)
+    item_list = []
+    for artist in artist_list:
+      item_list.append({'catalogue_number' : artist.catalogue_number, 'label' : artist.label, 'title' : artist.title, 'format' : artist.format, 'release_id' : artist.release_id})
     artist = get_object_or_404(Artist, pk=artist_id)
     sartist = str(artist)
     partist=re.sub("\s+", "+", sartist)
-    artist_hash={'name' : sartist, 'regexp' : partist}
+    artist_hash={'name' : sartist, 'regexp' : partist, 'item_list' : item_list}
     return render(request, 'discogs/artist_info.html', artist_hash)
 
 def artist_list(request):
@@ -31,7 +35,7 @@ def artist_list(request):
     for artist in artist_list:
       sartist = str(artist)
       partist=re.sub("\s+", "+", sartist)
-      artist_hash={'name' : sartist, 'regexp' : partist}
+      artist_hash={'name' : sartist, 'regexp' : partist, 'id' : artist.id}
       artist_hash_list.append(artist_hash)
     return render(request, 'discogs/artist_list.html', {'artist_hash_list' : artist_hash_list})
 

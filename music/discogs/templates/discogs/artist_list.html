@@ -1,6 +1,7 @@
 <h1>Artists</h1>
-<ul>
+<table border="1">
+<tr><th>Items</th><th>Discogs Page</th></tr>
 {% for artist in artist_hash_list %}
-    <li><a href="https://www.discogs.com/search/?type=artist&title={{ artist.regexp }}">{{ artist.name }}</a></li>
+    <tr><td><a href="http://127.0.0.1:8000/discogs/artist/{{ artist.id }}">{{ artist.name}}</a></td><td><a href="https://www.discogs.com/search/?type=artist&title={{ artist.regexp }}">{{ artist.name }}</a></td></tr>
 {% endfor %}
-</ul>
+</table>

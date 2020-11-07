@@ -28,4 +28,5 @@ class Item(models.Model):
     released = models.DateTimeField('date released')
     release_id = models.IntegerField(default=0)
     def __str__(self):
-        return self.release_id # maybe do more here when we decide what is good
+        item_tuple = (self.catalogue_number, self.label.label, self.title, self.format.format)
+        return "<tr><td>" + "</td><td>".join(item_tuple) + "</td></tr>"
