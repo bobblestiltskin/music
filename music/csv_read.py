@@ -67,12 +67,13 @@ obj=csv.DictReader(csvfile)
 
 # define some sets we push our fields containing duplicates into
 
+id = set()
 artists = set()
 formats = set()
 labels = set()
 items = []
 for row in obj:
-  items.append(row)
+  add = True
   d=dict(row)
   for k in d.keys():
 #    print ("%s => %s" % (k,d[k]))
@@ -82,6 +83,13 @@ for row in obj:
       formats.add(d[k])
     elif k == "Label":
       labels.add(d[k])
+    elif k == "release_id":
+      if d[k] in id:
+        add = False
+      else:
+        id.add(d[k])
+  if (add):
+    items.append(row)
 
 display("label", labels)
 display("artist", artists)
