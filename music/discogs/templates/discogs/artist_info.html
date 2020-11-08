@@ -2,8 +2,8 @@
 <table border="1">
 <tr><th>Catalogue Number</th><th>Label</th><th>Title</th><th>Format</th><th>Discogs Page</th></tr>
 {% for item in item_list %}
-  <tr><td>{{ item.catalogue_number }}</td><td>{{ item.label }}</td><td>{{ item.title }}</td><td>{{ item.format }}</td><td><a href="https://www.discogs.com/release/{{ item.release_id }}">Discogs entry for {{ item.release_id }}</td></tr>
+  <tr><td>{{ item.catalogue_number }}</td><td>{{ item.label }}</td><td>{{ item.title }}</td><td>{{ item.format }}</td><td><a href="{% url 'discogs:item_details' item.release_id %}">Discogs entry for {{ item.release_id }}</td></tr> 
 {% endfor %}
 </table>
 
-<p><a href="https://www.discogs.com/search/?type=artist&title={{ regexp }}">Discogs entry for {{ name }}</a></p>
+<p><a href="{% url 'discogs:artist_for_regexp' regexp %}">Discogs entry for {{ name }}</a></p>

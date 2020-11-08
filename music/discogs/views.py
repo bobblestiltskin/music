@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, get_list_or_404, render, HttpResponse
+from django.shortcuts import get_object_or_404, get_list_or_404, render, HttpResponse, HttpResponseRedirect
 from django.template import loader, Context, Template
 
 from .models import Artist, Label, Format, Item
@@ -17,6 +17,10 @@ def index(request):
 #    format = models.ForeignKey(Format, on_delete=models.CASCADE)
 #    released = models.DateTimeField('date released')
 #    release_id = models.IntegerField(default=0)
+
+def artist_for_regexp(request, artist_regexp):
+    response = "https://www.discogs.com/search/?type=artist&title=%s"
+    return HttpResponseRedirect(response % artist_regexp)
 
 def artist_info(request, artist_id):
     artist_list = get_list_or_404(Item, artist=artist_id)
@@ -68,5 +72,5 @@ def items_for_format(request, format_id):
     return HttpResponse(response % format_id)
 
 def item_details(request, release_id):
-    response = "You're looking at the details for item - id %s."
-    return HttpResponse(response % release_id)
+    response = "https://www.discogs.com/release/%s"
+    return HttpResponseRedirect(response % release_id)

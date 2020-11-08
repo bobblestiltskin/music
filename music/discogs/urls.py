@@ -8,6 +8,8 @@ urlpatterns = [
     path('', views.index, name='index'),
     # ex: /discogs/artist/
     path('artist/', views.artist_list, name='artist_list'),
+    # ex: /discogs/artist/search/regexp/
+    path('artist/search/<str:artist_regexp>/', views.artist_for_regexp, name='artist_for_regexp'),
     # ex: /discogs/artist/5/
     path('artist/<int:artist_id>/', views.artist_info, name='artist_info'),
     # ex: /discogs/artist/list/5/
