@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, get_list_or_404, render, HttpResponse, HttpResponseRedirect
 from django.template import loader, Context, Template
 
+#from admin.models import Choice
 from .models import Artist, Label, Format, Item
 
 import re
@@ -30,7 +31,8 @@ def artist_info(request, artist_id):
     artist = get_object_or_404(Artist, pk=artist_id)
     sartist = str(artist)
     partist=re.sub("\s+", "+", sartist)
-    artist_hash={'name' : sartist, 'regexp' : partist, 'item_list' : item_list}
+    partist1=re.sub("/", "%2F", partist)
+    artist_hash={'name' : sartist, 'regexp' : partist1, 'item_list' : item_list}
     return render(request, 'discogs/artist_info.html', artist_hash)
 
 def artist_list(request):
@@ -39,7 +41,8 @@ def artist_list(request):
     for artist in artist_list:
       sartist = str(artist)
       partist=re.sub("\s+", "+", sartist)
-      artist_hash={'name' : sartist, 'regexp' : partist, 'id' : artist.id}
+      partist1=re.sub("/", "%2F", partist)
+      artist_hash={'name' : sartist, 'regexp' : partist1, 'id' : artist.id}
       artist_hash_list.append(artist_hash)
     return render(request, 'discogs/artist_list.html', {'artist_hash_list' : artist_hash_list})
 
