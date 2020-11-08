@@ -4,11 +4,20 @@ from django.template import loader, Context, Template
 #from admin.models import Choice
 from .models import Artist, Label, Format, Item
 
+from .forms import SearchForm
+
 import re
 
 def index(request):
-    item_list = Item.objects.order_by('-release_id')[:5]
-    context = {'item_list': item_list}
+    artist_list = get_list_or_404(Artist)
+    label_list = get_list_or_404(Label)
+    format_list = get_list_or_404(Format)
+    item_list = get_list_or_404(Item)
+    form = SearchForm()
+    context = {'artist_list': artist_list, 'label_list': label_list, 'format_list': format_list, 'item_list': item_list, 'form' : form}
+
+#    item_list = Item.objects.order_by('-release_id')[:5]
+#    context = {'item_list': item_list}
     return render(request, 'discogs/index.html', context)
 
 #    catalogue_number = models.CharField(max_length=200)
@@ -18,6 +27,36 @@ def index(request):
 #    format = models.ForeignKey(Format, on_delete=models.CASCADE)
 #    released = models.DateTimeField('date released')
 #    release_id = models.IntegerField(default=0)
+
+def index_search(request):
+    arg_list = [ ]
+
+    artist_id = request.POST['artist_choice']
+    if artist_id:
+      arg_list.append('artist')
+      arg_list.append(artist_id)
+
+    label_id = request.POST['label_choice']
+    if label_id:
+      arg_list.append('label')
+      arg_list.append(label_id)
+
+    format_id = request.POST['format_choice']
+    if format_id:
+      arg_list.append('format')
+      arg_list.append(format_id)
+
+    text = request.POST['text_choice']
+    if text:
+      arg_list.append('text')
+      arg_list.append(text)
+
+    item_list = get_list_or_404(Item, arg_list)
+    output_list = []
+    for item in item_list:
+      print(item)
+      output_list.append({'catalogue_number' : item.catalogue_number, 'artist' : item.artist, 'label' : item.label, 'title' : item.title, 'format' : item.format, 'release_id' : item.release_id})
+    return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
 def artist_for_regexp(request, artist_regexp):
     response = "https://www.discogs.com/search/?type=artist&title=%s"

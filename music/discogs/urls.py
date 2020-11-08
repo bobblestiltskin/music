@@ -6,6 +6,9 @@ app_name = 'discogs'
 urlpatterns = [
     # ex: /discogs/
     path('', views.index, name='index'),
+    # ex: /discogs/search
+    path('search/', views.index_search, name='index_search'),
+    #path('search/<int:artist_id>', views.index_search, name='index_search'),
     # ex: /discogs/artist/
     path('artist/', views.artist_list, name='artist_list'),
     # ex: /discogs/artist/search/regexp/
