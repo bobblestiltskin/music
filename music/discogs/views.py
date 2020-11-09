@@ -29,29 +29,36 @@ def index(request):
 #    release_id = models.IntegerField(default=0)
 
 def index_search(request):
-    arg_list = [ ]
-
     artist_id = request.POST['artist_choice']
-    if artist_id:
-      arg_list.append('artist')
-      arg_list.append(artist_id)
-
     label_id = request.POST['label_choice']
-    if label_id:
-      arg_list.append('label')
-      arg_list.append(label_id)
-
     format_id = request.POST['format_choice']
-    if format_id:
-      arg_list.append('format')
-      arg_list.append(format_id)
+    print('format_is is %s' % format_id)
+#    text = request.POST['text_choice']
+    if artist_id:
+      if label_id:
+        if format_id:
+          item_list = get_list_or_404(Item, artist=artist_id, label=label_id, format=format_id)
+        else:
+          item_list = get_list_or_404(Item, artist=artist_id, label=label_id)
+      else:
+        if format_id:
+          item_list = get_list_or_404(Item, artist=artist_id, format=format_id)
+        else:
+          item_list = get_list_or_404(Item, artist=artist_id)
+    else:
+      if label_id:
+        if format_id:
+          item_list = get_list_or_404(Item, label=label_id, format=format_id)
+        else:
+          item_list = get_list_or_404(Item, label=label_id)
+      else:
+        if format_id:
+          item_list = get_list_or_404(Item, format=format_id)
+        else:
+          item_list = get_list_or_404(Item)
 
-    text = request.POST['text_choice']
-    if text:
-      arg_list.append('text')
-      arg_list.append(text)
-
-    item_list = get_list_or_404(Item, arg_list)
+    print("item list is ")
+    print(item_list)
     output_list = []
     for item in item_list:
       print(item)
