@@ -6,6 +6,14 @@ from .models import Artist, Label, Format, Item
 
 from .forms import SearchForm
 
+#    catalogue_number = models.CharField(max_length=200)
+#    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
+#    title = models.CharField(max_length=200)
+#    label = models.ForeignKey(Label, on_delete=models.CASCADE)
+#    format = models.ForeignKey(Format, on_delete=models.CASCADE)
+#    released = models.DateTimeField('date released')
+#    release_id = models.IntegerField(default=0)
+
 import re
 
 def index(request):
@@ -15,18 +23,13 @@ def index(request):
     item_list = get_list_or_404(Item)
     form = SearchForm()
     context = {'artist_list': artist_list, 'label_list': label_list, 'format_list': format_list, 'item_list': item_list, 'form' : form}
-
-#    item_list = Item.objects.order_by('-release_id')[:5]
-#    context = {'item_list': item_list}
     return render(request, 'discogs/index.html', context)
 
-#    catalogue_number = models.CharField(max_length=200)
-#    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
-#    title = models.CharField(max_length=200)
-#    label = models.ForeignKey(Label, on_delete=models.CASCADE)
-#    format = models.ForeignKey(Format, on_delete=models.CASCADE)
-#    released = models.DateTimeField('date released')
-#    release_id = models.IntegerField(default=0)
+def collate_item_list(item_list):
+    output_list = []
+    for item in item_list:
+      output_list.append({'catalogue_number' : item.catalogue_number, 'artist' : item.artist, 'label' : item.label, 'title' : item.title, 'format' : item.format, 'release_id' : item.release_id})
+    return output_list
 
 def index_search(request):
     artist_id = request.POST['artist_choice']
@@ -57,12 +60,7 @@ def index_search(request):
         else:
           item_list = get_list_or_404(Item)
 
-    print("item list is ")
-    print(item_list)
-    output_list = []
-    for item in item_list:
-      print(item)
-      output_list.append({'catalogue_number' : item.catalogue_number, 'artist' : item.artist, 'label' : item.label, 'title' : item.title, 'format' : item.format, 'release_id' : item.release_id})
+    output_list = collate_item_list(item_list)
     return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
 def artist_for_regexp(request, artist_regexp):
@@ -93,8 +91,9 @@ def artist_list(request):
     return render(request, 'discogs/artist_list.html', {'artist_hash_list' : artist_hash_list})
 
 def items_for_artist(request, artist_id):
-    response = "You're looking at the items for artist %s."
-    return HttpResponse(response % artist_id)
+    item_list = get_list_or_404(Item, artist=artist_id)
+    output_list = collate_item_list(item_list)
+    return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
 def label_info(request, label_id):
     label = get_object_or_404(Label, pk=label_id)
@@ -105,8 +104,9 @@ def label_list(request):
     return render(request, 'discogs/label_list.html', {'label_list': label_list})
 
 def items_for_label(request, label_id):
-    response = "You're looking at the items for label %s."
-    return HttpResponse(response % label_id)
+    item_list = get_list_or_404(Item, label=label_id)
+    output_list = collate_item_list(item_list)
+    return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
 def format_info(request, format_id):
     format = get_object_or_404(Format, pk=format_id)
@@ -117,8 +117,9 @@ def format_list(request):
     return render(request, 'discogs/format_list.html', {'format_list': format_list})
 
 def items_for_format(request, format_id):
-    response = "You're looking at the items for format %s."
-    return HttpResponse(response % format_id)
+    item_list = get_list_or_404(Item, label=label_id)
+    output_list = collate_item_list(item_list)
+    return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
 def item_details(request, release_id):
     response = "https://www.discogs.com/release/%s"
