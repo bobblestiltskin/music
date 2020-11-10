@@ -63,6 +63,17 @@ def index_search(request):
     output_list = collate_item_list(item_list)
     return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
+def type_list(request, object, file, hash_name):
+    type_list = get_list_or_404(object)
+    type_hash_list=[]
+    for type in type_list:
+      stype = str(type)
+      ptype=re.sub("\s+", "+", stype)
+      ptype1=re.sub("/", "%2F", ptype)
+      type_hash={'name' : stype, 'regexp' : ptype1, 'id' : type.id}
+      type_hash_list.append(type_hash)
+    return render(request, 'discogs/' + file + '.html', {hash_name : type_hash_list})
+
 def artist_for_regexp(request, artist_regexp):
     response = "https://www.discogs.com/search/?type=artist&title=%s"
     return HttpResponseRedirect(response % artist_regexp)
@@ -80,28 +91,31 @@ def artist_info(request, artist_id):
     return render(request, 'discogs/artist_info.html', artist_hash)
 
 def artist_list(request):
-    artist_list = get_list_or_404(Artist)
-    artist_hash_list=[]
-    for artist in artist_list:
-      sartist = str(artist)
-      partist=re.sub("\s+", "+", sartist)
-      partist1=re.sub("/", "%2F", partist)
-      artist_hash={'name' : sartist, 'regexp' : partist1, 'id' : artist.id}
-      artist_hash_list.append(artist_hash)
-    return render(request, 'discogs/artist_list.html', {'artist_hash_list' : artist_hash_list})
+    return type_list(request, Artist, "artist_list", "artist_hash_list")
 
 def items_for_artist(request, artist_id):
     item_list = get_list_or_404(Item, artist=artist_id)
     output_list = collate_item_list(item_list)
     return render(request, 'discogs/search_results.html', {'output_list' : output_list})
 
+def label_for_regexp(request, label_regexp):
+    response = "https://www.discogs.com/search/?type=label&title=%s"
+    return HttpResponseRedirect(response % label_regexp)
+
 def label_info(request, label_id):
+    label_list = get_list_or_404(Item, label=label_id)
+    item_list = []
+    for label in label_list:
+      item_list.append({'catalogue_number' : label.catalogue_number, 'artist' : label.artist, 'title' : label.title, 'format' : label.format, 'release_id' : label.release_id})
     label = get_object_or_404(Label, pk=label_id)
-    return render(request, 'discogs/label_info.html', {'label': label})
+    slabel = str(label)
+    plabel=re.sub("\s+", "+", slabel)
+    plabel1=re.sub("/", "%2F", plabel)
+    label_hash={'name' : slabel, 'regexp' : plabel1, 'item_list' : item_list}
+    return render(request, 'discogs/label_info.html', label_hash)
 
 def label_list(request):
-    label_list = get_list_or_404(Label)
-    return render(request, 'discogs/label_list.html', {'label_list': label_list})
+    return type_list(request, Label, "label_list", "label_hash_list")
 
 def items_for_label(request, label_id):
     item_list = get_list_or_404(Item, label=label_id)

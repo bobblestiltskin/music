@@ -19,6 +19,8 @@ urlpatterns = [
     path('artist/list/<int:artist_id>/', views.items_for_artist, name='items_for_artist'),
     # ex: /discogs/label/
     path('label/', views.label_list, name='label_list'),
+    # ex: /discogs/label/search/regexp/
+    path('label/search/<str:label_regexp>/', views.label_for_regexp, name='label_for_regexp'),
     # ex: /discogs/label/5/
     path('label/<int:label_id>/', views.label_info, name='label_info'),
     # ex: /discogs/label/list/5/

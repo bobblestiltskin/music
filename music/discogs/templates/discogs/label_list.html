@@ -1,6 +1,7 @@
 <h1>Labels</h1>
-<ul>
-{% for label in label_list %}
-    <li>{{ label }}</li>
+<table border="1">
+<tr><th>Items</th><th>Discogs Page</th></tr>
+{% for label in label_hash_list %}
+    <tr><td><a href="{% url 'discogs:label_info' label.id %}">{{ label.name}}</a></td><td><a href="{% url 'discogs:label_for_regexp' label.regexp %}">{{ label.name }}</a></td></tr>
 {% endfor %}
-</ul>
+</table>
