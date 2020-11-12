@@ -28,7 +28,7 @@ def index(request):
 def collate_item_list(item_list):
     output_list = []
     for item in item_list:
-      output_list.append({'catalogue_number' : item.catalogue_number, 'artist' : item.artist, 'label' : item.label, 'title' : item.title, 'format' : item.format, 'release_id' : item.release_id})
+      output_list.append({'catalogue_number' : item.catalogue_number, 'artist' : item.artist, 'label' : item.label, 'title' : item.title, 'format' : item.format, 'released' : item.released, 'release_id' : item.release_id})
     return output_list
 
 def index_search(request):
@@ -85,7 +85,7 @@ def artist_info(request, artist_id):
     artist_list = get_list_or_404(Item, artist=artist_id)
     item_list = []
     for artist in artist_list:
-      item_list.append({'catalogue_number' : artist.catalogue_number, 'label' : artist.label, 'title' : artist.title, 'format' : artist.format, 'release_id' : artist.release_id, 'released' : artist.released})
+      item_list.append({'catalogue_number' : artist.catalogue_number, 'label' : artist.label, 'title' : artist.title, 'format' : artist.format, 'released' : artist.released, 'release_id' : artist.release_id})
     artist = get_object_or_404(Artist, pk=artist_id)
     sartist = str(artist)
     partist=re.sub("\s+", "+", sartist)
@@ -109,7 +109,7 @@ def label_info(request, label_id):
     label_list = get_list_or_404(Item, label=label_id)
     item_list = []
     for label in label_list:
-      item_list.append({'catalogue_number' : label.catalogue_number, 'artist' : label.artist, 'title' : label.title, 'format' : label.format, 'release_id' : label.release_id})
+      item_list.append({'catalogue_number' : label.catalogue_number, 'artist' : label.artist, 'title' : label.title, 'format' : label.format, 'released' : label.released, 'release_id' : label.release_id})
     label = get_object_or_404(Label, pk=label_id)
     slabel = str(label)
     plabel=re.sub("\s+", "+", slabel)

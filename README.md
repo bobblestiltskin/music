@@ -1,4 +1,4 @@
-this repository is for managing music collections.
+This repository is for managing music collections.
 
 It takes as input a csv file which is generated from discogs.com collection
 at https://www.discogs.com/users/export?w=collection
@@ -46,3 +46,24 @@ cataloguing all of the music is by utilising the discogs collection facility, si
 it will involve a lot less typing than any other method. I will go into data entry
 phase after adding the two other database interfaces. I will tidy this code base after
 deploying to my public facing webserver ...
+
+As a test, on my public-facing webserver, I git pull'ed this repository and then the
+following commands rendered my data visible. This is most likely highly insecure and
+not recommended, however, I wanted to see whether it worked.
+
+$ cd src
+$ git clone https://github.com/bobblestiltskin/music
+$ cd music/music
+$ pip3 install Django
+
+My webserver is running Debian stable (the packaged version of Django is 1.11 which
+is unsupported and failed to parse the music/url.py file correctly - so I upgraded
+Django to the latest version. That version works with the files here).
+
+$ python3 -m django --version # check the Django version
+$ python3 manage.py migrate # this creates the db.sqlite file
+$ sqlite3 db.sqlite3  # but it is empty when we select on the interesting table
+$ python3 csv_read.py <path-to-my-csv-file>
+$ sqlite3 db.sqlite3 # now the tables have the csv data
+$ vi music/settings.py # set ALLOWED_HOSTS = ['*']
+$ python3 manage.py runserver 0.0.0.0:8000 # make visible externally

@@ -1,6 +1,6 @@
 <table border="1">
-<tr><th>Catalogue Number</th><th>Artist</th><th>Label</th><th>Title</th><th>Format</th><th>Discogs Page</th></tr>
+<tr><th>Catalogue Number</th><th>Artist</th><th>Label</th><th>Title</th><th>Format</th><th>Released</th><th>Discogs Page</th></tr>
 {% for item in output_list %}
-  <tr><td>{{ item.catalogue_number }}</td><td>{{ item.artist }}</td><td>{{ item.label }}</td><td>{{ item.title }}</td><td>{{ item.format }}</td><td><a href="{% url 'discogs:item_details' item.release_id %}">Discogs entry for {{ item.release_id }}</td></tr> 
+  <tr><td>{{ item.catalogue_number }}</td><td>{{ item.artist }}</td><td>{{ item.label }}</td><td>{{ item.title }}</td><td>{{ item.format }}</td><td>{{ item.released }}</td><td><a href="{% url 'discogs:item_details' item.release_id %}">Discogs entry for {{ item.release_id }}</td></tr> 
 {% endfor %}
 </table>
