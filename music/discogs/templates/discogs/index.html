@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'discogs/style.css' %}">
 
+<center>
 <form action="{% url 'discogs:index_search' %}" method="post">
 {% csrf_token %}
 <table border="1">
@@ -9,7 +10,13 @@
 </table>
 <input type="submit" value="Search">
 </form>
+</center>
 
-<table border="1">
-<tr><td><a href="{% url 'discogs:artist_list' %}">artists</a></td><td><a href="{% url 'discogs:label_list' %}">labels</a></td><td><a href="{% url 'discogs:format_list' %}">formats</a></td></tr>
-</table>
+<hr>
+<p>The above search boxes return fewer items, the more search terms are added.</p>
+<p>If you want to list all of the <a href="{% url 'discogs:artist_list' %}">artists</a> you will see a two columns.
+<p>The first column will show all of the items for that artist and the second column links to the discogs entry for that artist name.</p>
+<p>The <a href="{% url 'discogs:label_list' %}">labels</a> are similarly displayed.</p>
+<p>Each of the <a href="{% url 'discogs:format_list' %}">formats</a> returned from the CSV file is listed. I think that I may well
+massage this data further, though I am presently considering the best approach.</p>
+<hr>
