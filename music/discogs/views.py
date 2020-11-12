@@ -35,11 +35,14 @@ def index_search(request):
     artist_id = request.POST['artist_choice']
     label_id = request.POST['label_choice']
     format_id = request.POST['format_choice']
-    print('format_is is %s' % format_id)
 #    text = request.POST['text_choice']
     if artist_id:
       if label_id:
         if format_id:
+# I am not sure I like this way of invoking the function - really I want to pass a dictionary
+# this is fine for now - but if I had 10 different constraints it would be horrific
+# the function does not take a set, list or dictionary but requires the key-value pairs as here
+# I have tried alternatives - and will revisit since I do not like this
           item_list = get_list_or_404(Item, artist=artist_id, label=label_id, format=format_id)
         else:
           item_list = get_list_or_404(Item, artist=artist_id, label=label_id)
@@ -82,7 +85,7 @@ def artist_info(request, artist_id):
     artist_list = get_list_or_404(Item, artist=artist_id)
     item_list = []
     for artist in artist_list:
-      item_list.append({'catalogue_number' : artist.catalogue_number, 'label' : artist.label, 'title' : artist.title, 'format' : artist.format, 'release_id' : artist.release_id})
+      item_list.append({'catalogue_number' : artist.catalogue_number, 'label' : artist.label, 'title' : artist.title, 'format' : artist.format, 'release_id' : artist.release_id, 'released' : artist.released})
     artist = get_object_or_404(Artist, pk=artist_id)
     sartist = str(artist)
     partist=re.sub("\s+", "+", sartist)
