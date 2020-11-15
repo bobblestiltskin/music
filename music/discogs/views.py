@@ -36,32 +36,19 @@ def index_search(request):
     label_id = request.POST['label_choice']
     format_id = request.POST['format_choice']
 #    text = request.POST['text_choice']
+
     if artist_id:
-      if label_id:
-        if format_id:
-# I am not sure I like this way of invoking the function - really I want to pass a dictionary
-# this is fine for now - but if I had 10 different constraints it would be horrific
-# the function does not take a set, list or dictionary but requires the key-value pairs as here
-# I have tried alternatives - and will revisit since I do not like this
-          item_list = get_list_or_404(Item, artist=artist_id, label=label_id, format=format_id)
-        else:
-          item_list = get_list_or_404(Item, artist=artist_id, label=label_id)
-      else:
-        if format_id:
-          item_list = get_list_or_404(Item, artist=artist_id, format=format_id)
-        else:
-          item_list = get_list_or_404(Item, artist=artist_id)
+      item_list = Item.objects.filter(artist=artist_id)
     else:
-      if label_id:
-        if format_id:
-          item_list = get_list_or_404(Item, label=label_id, format=format_id)
-        else:
-          item_list = get_list_or_404(Item, label=label_id)
-      else:
-        if format_id:
-          item_list = get_list_or_404(Item, format=format_id)
-        else:
-          item_list = get_list_or_404(Item)
+      item_list = Item.objects.filter()
+
+    if label_id:
+      item_list = item_list.filter(label=label_id)
+
+    if format_id:
+      item_list = get_list_or_404(item_list, format=format_id)
+    else:
+      item_list = get_list_or_404(item_list)
 
     output_list = collate_item_list(item_list)
     return render(request, 'discogs/search_results.html', {'output_list' : output_list})
