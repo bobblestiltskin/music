@@ -36,30 +36,59 @@ def display(istring, collection):
 #    print("%s : %s" % (istring, a))
   print("Number of %ss is %d" % (istring, len(collection)))
 
-def clean_tables(cur, db):
+def clean_tables(dbtype, cur, db):
   dlt = "delete from %s" % db
   cur.execute(dlt)
-  upd = "UPDATE `sqlite_sequence` SET `seq` = 0 WHERE `name` = '%s'" % db
+  if dbtype == "sqlite":
+    upd = "UPDATE `sqlite_sequence` SET `seq` = 0 WHERE `name` = '%s'" % db
+  elif dbtype == "postgresql":
+    upd = "ALTER SEQUENCE %ss_id_seq RESTART;" % db
   cur.execute(upd)
 
-def clean_db(cur):
-  clean_tables(cur, "discogs_artist")
-  clean_tables(cur, "discogs_format")
-  clean_tables(cur, "discogs_label")
-  clean_tables(cur, "discogs_item")
+def clean_db(dbtype, cur):
+  clean_tables(dbtype, cur, "discogs_artist")
+  clean_tables(dbtype, cur, "discogs_format")
+  clean_tables(dbtype, cur, "discogs_label")
+  clean_tables(dbtype, cur, "discogs_item")
 
-def insert(cur, db, field, collection):
-  for a in sorted(collection):
-    ins = "insert into %s(%s) values(?)" % (db, field)
-    cur.execute(ins, (a,))
+def insert(dbtype, cur, db, field, collection):
+  if dbtype == "sqlite":
+    for a in sorted(collection):
+      ins = "insert into %s(%s) values(?);" % (db, field)
+      cur.execute(ins, (a,))
+  elif dbtype == "postgresql":
+    for a in sorted(collection):
+      a=re.sub("'", "''", a)
+      ins = "insert into %s(%s) values('%s');" % (db, field, a)
+      cur.execute(ins)
 
 def get_id(cur, db, field, value):
-  get = "select id from %s where %s=?" % (db, field)
-  cur.execute(get, (value,))
+  if dbtype == "sqlite":
+    get = "select id from %s where %s=?" % (db, field)
+    cur.execute(get, (value,))
+  elif dbtype == "postgresql":
+    value=re.sub("'", "''", value)
+    get = "select id from %s where %s='%s'" % (db, field, value)
+    cur.execute(get)
   row = cur.fetchone()
   return row[0]
  
 # read the csv file passed as the first argument
+
+if len(sys.argv) < 2:
+  print("Need to pass the full path of the discogs csv file or import")
+  sys.exit(-1);
+  
+dbtype = "sqlite"
+if len(sys.argv) == 3:
+  dbtype = sys.argv[2];
+
+valid_dbtypes = ('sqlite', 'postgresql', 'mysql')
+if dbtype not in valid_dbtypes:
+  print ("Valid DG types are ", valid_dbtypes)
+  sys.exit(-1);
+
+print("dbtype is %s" % dbtype)
 
 csv_file = sys.argv[1]
 csvfile=open(csv_file,'r', newline='')
@@ -95,15 +124,24 @@ display("label", labels)
 display("artist", artists)
 display("format", formats)
 
-conn = sqlite3.connect('./db.sqlite3')
-print('Connected to database successfully.')
+if dbtype == "sqlite":
+  conn = sqlite3.connect('./db.sqlite3')
+elif dbtype == "postgresql":
+  import psycopg2
+  conn = psycopg2.connect(
+    host="localhost",
+    database="discogs",
+    user="discogs",
+    password="this is really really secret so you will never guess it!")
+
+print('Connected to %s database successfully.' % dbtype)
 cur = conn.cursor()
 
-clean_db(cur)
+clean_db(dbtype, cur)
 
-insert(cur, "discogs_artist", "artist", artists)
-insert(cur, "discogs_format", "format", formats)
-insert(cur, "discogs_label", "label", labels)
+insert(dbtype, cur, "discogs_artist", "artist", artists)
+insert(dbtype, cur, "discogs_format", "format", formats)
+insert(dbtype, cur, "discogs_label", "label", labels)
 #
 # now we insert the normalised data into the item table
 #
@@ -116,9 +154,14 @@ for row in items:
       for_id = get_id(cur, "discogs_format", "format", d[k])
     elif k == "Label":
       lab_id = get_id(cur, "discogs_label", "label", d[k])
-  ins = "insert into discogs_item(catalogue_number, title, released, release_id, artist_id, format_id, label_id) values(?, ?, ?, ?, ?, ?, ?)"
-  vals = (d["Catalog#"], d["Title"], d["Released"], d["release_id"], art_id, for_id, lab_id)
-  cur.execute(ins, vals)
+  if dbtype == "sqlite":
+    ins = "insert into discogs_item(catalogue_number, title, released, release_id, artist_id, format_id, label_id) values(?, ?, ?, ?, ?, ?, ?)"
+    vals = (d["Catalog#"], d["Title"], d["Released"], d["release_id"], art_id, for_id, lab_id)
+    cur.execute(ins, vals)
+  elif dbtype == "postgresql":
+    title=re.sub("'", "''", d["Title"])
+    ins = "insert into discogs_item(catalogue_number, title, released, release_id, artist_id, format_id, label_id) values('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (d["Catalog#"], title, d["Released"], d["release_id"], art_id, for_id, lab_id)
+    cur.execute(ins)
 
 print('inserted to database successfully.')
 conn.commit()
