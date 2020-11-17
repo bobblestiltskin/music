@@ -42,6 +42,7 @@ def clean_tables(dbtype, cur, db):
   if dbtype == "sqlite":
     upd = "UPDATE `sqlite_sequence` SET `seq` = 0 WHERE `name` = '%s'" % db
   elif dbtype == "postgresql":
+#    upd = "ALTER SEQUENCE %s_id RESTART WITH 1;" % db
     upd = "ALTER SEQUENCE %ss_id_seq RESTART;" % db
   cur.execute(upd)
 
@@ -73,6 +74,130 @@ def get_id(cur, db, field, value):
   row = cur.fetchone()
   return row[0]
  
+def format_csv_to_db(format):
+  csv_to_db_format = {
+    '10"' : '10"',
+    '10", Album, Cle' : '10"',
+    '10", EP' : '10"',
+    '10", RE' : '10"',
+    '12"' : '12"',
+    '12", Gre' : '12"',
+    '12", Ltd' : '12"',
+    '12", Ltd, Promo' : '12"',
+    '12", Maxi' : '12"',
+    '12", Promo, TP' : '12"',
+    '12", RE' : '12"',
+    '12", Sin' : '12"',
+    '12", Single' : '12"',
+    '12", Single, Pic' : '12"',
+    '2x12", Promo' : '12"',
+    '2x7", Single' : '7"',
+    '2x7", Single, Gat' : '7"',
+    '2xCD, Album, RE, RM' : 'CD',
+    '2xCD, Album, Sli' : 'CD',
+    '2xCD, Comp' : 'CD',
+    '2xCD, Comp + CD, Mixed' : 'CD',
+    '2xCD, Comp + DVD' : 'CD',
+    '2xCD, Comp + DVD-V' : 'CD',
+    '2xCD, Comp, Enh' : 'CD',
+    '2xCD, Comp, Promo' : 'CD',
+    '2xLP, Comp' : 'LP',
+    '3xCD, Comp + Box' : 'CD',
+    '3xCD, Comp + Box + Ltd' : 'CD',
+    '3xLP, Comp + Box, Ltd' : 'LP',
+    '4xCD, Album, RE + Box, Comp' : 'CD',
+    '7"' : '7"',
+    '7", EP' : '7"',
+    '7", EP, RE' : '7"',
+    '7", EP, Single, S/Edition, Sol' : '7"',
+    '7", EP, ora' : '7"',
+    '7", Gre' : '7"',
+    '7", Maxi, Sol' : '7"',
+    '7", Mono' : '7"',
+    '7", RE' : '7"',
+    '7", RE, Fol' : '7"',
+    '7", Rou' : '7"',
+    '7", Single' : '7"',
+    '7", Single + 7", Single' : '7"',
+    '7", Single, 2nd' : '7"',
+    '7", Single, Air' : '7"',
+    '7", Single, Bla' : '7"',
+    '7", Single, CBS' : '7"',
+    '7", Single, Cle' : '7"',
+    '7", Single, Col' : '7"',
+    '7", Single, Com' : '7"',
+    '7", Single, Cop' : '7"',
+    '7", Single, Fir' : '7"',
+    '7", Single, Gat' : '7"',
+    '7", Single, Gre' : '7"',
+    '7", Single, Inj' : '7"',
+    '7", Single, Kno' : '7"',
+    '7", Single, M/Print, Bro' : '7"',
+    '7", Single, MP' : '7"',
+    '7", Single, Mono' : '7"',
+    '7", Single, Mono, RE, Pus' : '7"',
+    '7", Single, Mono, Sol' : '7"',
+    '7", Single, Mus' : '7"',
+    '7", Single, No ' : '7"',
+    '7", Single, Ori' : '7"',
+    '7", Single, Pap' : '7"',
+    '7", Single, Pho' : '7"',
+    '7", Single, Pin' : '7"',
+    '7", Single, Pos' : '7"',
+    '7", Single, Pus' : '7"',
+    '7", Single, RE' : '7"',
+    '7", Single, RE, Sol' : '7"',
+    '7", Single, RP' : '7"',
+    '7", Single, RP, 2nd' : '7"',
+    '7", Single, RP, Sol' : '7"',
+    '7", Single, Sil' : '7"',
+    '7", Single, Sol' : '7"',
+    '7", Single, Sta' : '7"',
+    '7", Single, T\'a' : '7"',
+    '7", Single, Tex' : '7"',
+    '7", Single, WEA' : '7"',
+    'Box + 3xCD, Comp' : 'Box',
+    'Box, Ltd + CD, Album + CD, Comp + DVD-V, Copy Prot' : 'Box',
+    'CD' : 'CD',
+    'CD, Album' : 'CD',
+    'CD, Album, Comp' : 'CD',
+    'CD, Album, Enh' : 'CD',
+    'CD, Album, Mixed' : 'CD',
+    'CD, Album, RE' : 'CD',
+    'CD, Album, RE, RM' : 'CD',
+    'CD, Album, RE, RM, Bon' : 'CD',
+    'CD, Album, RE, RM, Gre' : 'CD',
+    'CD, Album, RE, RM, Sli' : 'CD',
+    'CD, Album, RM' : 'CD',
+    'CD, Album, RP' : 'CD',
+    'CD, Comp' : 'CD',
+    'CD, Comp, Promo' : 'CD',
+    'CD, Comp, Promo, Gat' : 'CD',
+    'CD, Comp, RE' : 'CD',
+    'CD, Comp, Rei' : 'CD',
+    'CD, Comp, Sli' : 'CD',
+    'Cass, Album' : 'Cass',
+    'Cass, Single' : 'Cass',
+    'Cass, Single, Yel' : 'Cass',
+    'Flexi, 7", S/Sided' : 'Flexi',
+    'Flexi, 7", Shape, S/Sided, Sil' : 'Flexi',
+    'LP' : 'LP',
+    'LP, Album' : 'LP',
+    'LP, Album + 7", EP' : 'LP',
+    'LP, Album, Ltd, RE, 180' : 'LP',
+    'LP, Album, RE' : 'LP',
+    'LP, Album, RE + 7", Single' : 'LP',
+    'LP, Album, RE, Gat' : 'LP',
+    'LP, Album, RE, RM + LP, Comp, RM' : 'LP',
+    'LP, Album, RE, RM, 180' : 'LP',
+    'LP, Comp' : 'LP',
+    'LP, Comp, RE' : 'LP',
+    'LP, MiniAlbum' : 'LP',
+    'LP, RE' : 'LP',
+    'LP, RE, RM + LP, Comp, RM' : 'LP',
+  }
+  return csv_to_db_format[format]
+
 # read the csv file passed as the first argument
 
 if len(sys.argv) < 2:
@@ -109,11 +234,11 @@ for row in obj:
     if k == "Artist":
       artists.add(d[k])
     elif k == "Format":
-      formats.add(d[k])
+      formats.add(format_csv_to_db(d[k]))
     elif k == "Label":
       labels.add(d[k])
     elif k == "release_id":
-      if d[k] in id:
+      if d[k] in id: # filter out any duplicates
         add = False
       else:
         id.add(d[k])
@@ -151,7 +276,7 @@ for row in items:
     if k == "Artist":
       art_id = get_id(cur, "discogs_artist", "artist", d[k])
     elif k == "Format":
-      for_id = get_id(cur, "discogs_format", "format", d[k])
+      for_id = get_id(cur, "discogs_format", "format", format_csv_to_db(d[k]))
     elif k == "Label":
       lab_id = get_id(cur, "discogs_label", "label", d[k])
   if dbtype == "sqlite":
