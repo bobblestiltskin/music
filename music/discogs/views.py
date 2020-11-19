@@ -37,10 +37,10 @@ def index_search(request):
     format_id = request.POST['format_choice']
 #    text = request.POST['text_choice']
 
+    item_list = Item.objects.order_by('artist')
+
     if artist_id:
-      item_list = Item.objects.filter(artist=artist_id)
-    else:
-      item_list = Item.objects.filter()
+      item_list = item_list.filter(artist=artist_id)
 
     if label_id:
       item_list = item_list.filter(label=label_id)
