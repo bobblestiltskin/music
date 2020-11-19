@@ -26,6 +26,7 @@ Collection Notes =>
 
 '''
 
+import argparse
 import csv
 import re
 import sqlite3
@@ -42,7 +43,6 @@ def clean_tables(dbtype, cur, db):
   if dbtype == "sqlite":
     upd = "UPDATE `sqlite_sequence` SET `seq` = 0 WHERE `name` = '%s'" % db
   elif dbtype == "postgresql":
-#    upd = "ALTER SEQUENCE %s_id RESTART WITH 1;" % db
     upd = "ALTER SEQUENCE %ss_id_seq RESTART;" % db
   cur.execute(upd)
 
@@ -198,25 +198,17 @@ def format_csv_to_db(format):
   }
   return csv_to_db_format[format]
 
-# read the csv file passed as the first argument
+parser = argparse.ArgumentParser(description='Convert discogs.com collection CSV file to SQL tables.')
+parser.add_argument('csv_file', metavar='CSV_filename', nargs='?', help='collections CSV file from discogs.com')
+parser.add_argument('--dbtype', default='sqlite', nargs='?', choices=['sqlite', 'postgresql', 'mysql'], help='type of database')
+parser.add_argument('--dbpasswd', nargs='?', help='database password')
+parser.add_argument('--clean_label_numbers', action='store_true', help='Clean bracketed numbers in labels')
 
-if len(sys.argv) < 2:
-  print("Need to pass the full path of the discogs csv file or import")
-  sys.exit(-1);
-  
-dbtype = "sqlite"
-if len(sys.argv) == 3:
-  dbtype = sys.argv[2];
+args = parser.parse_args()
+print(args)
 
-valid_dbtypes = ('sqlite', 'postgresql', 'mysql')
-if dbtype not in valid_dbtypes:
-  print ("Valid DG types are ", valid_dbtypes)
-  sys.exit(-1);
-
-print("dbtype is %s" % dbtype)
-
-csv_file = sys.argv[1]
-csvfile=open(csv_file,'r', newline='')
+dbtype = args.dbtype
+csvfile=open(args.csv_file,'r', newline='')
 obj=csv.DictReader(csvfile)
 
 # define some sets we push our fields containing duplicates into
@@ -236,7 +228,11 @@ for row in obj:
     elif k == "Format":
       formats.add(format_csv_to_db(d[k]))
     elif k == "Label":
-      labels.add(d[k])
+      if args.clean_label_numbers:
+        label = re.sub("\(\d+\)$", "", d[k])
+      else:
+        label = d[k]
+      labels.add(label)
     elif k == "release_id":
       if d[k] in id: # filter out any duplicates
         add = False
@@ -257,7 +253,7 @@ elif dbtype == "postgresql":
     host="localhost",
     database="discogs",
     user="discogs",
-    password="this is really really secret so you will never guess it!")
+    password=args.dbpasswd)
 
 print('Connected to %s database successfully.' % dbtype)
 cur = conn.cursor()
@@ -278,7 +274,11 @@ for row in items:
     elif k == "Format":
       for_id = get_id(cur, "discogs_format", "format", format_csv_to_db(d[k]))
     elif k == "Label":
-      lab_id = get_id(cur, "discogs_label", "label", d[k])
+      if args.clean_label_numbers:
+        label = re.sub("\(\d+\)$", "", d[k])
+      else:
+        label = d[k]
+      lab_id = get_id(cur, "discogs_label", "label", label)
   if dbtype == "sqlite":
     ins = "insert into discogs_item(catalogue_number, title, released, release_id, artist_id, format_id, label_id) values(?, ?, ?, ?, ?, ?, ?)"
     vals = (d["Catalog#"], d["Title"], d["Released"], d["release_id"], art_id, for_id, lab_id)
