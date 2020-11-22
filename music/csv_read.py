@@ -77,19 +77,19 @@ def get_id(cur, db, field, value):
 def format_csv_to_db(format):
   import ast
 
-  with open(args.format_file) as f:
-    data = f.read()
-  csv_to_db_format = ast.literal_eval(data)
+  b=re.sub(",.*", "", format)
+  b=re.sub("^\d+x", "", b)
+  b=re.sub(" \+.*", "", b)
 
-  return csv_to_db_format[format]
+  return b
 
 parser = argparse.ArgumentParser(description='Convert discogs.com collection CSV file to SQL tables.')
 parser.add_argument('csv_file', metavar='CSV_filename', nargs='?', help='collections CSV file from discogs.com')
 parser.add_argument('--dbtype', default='sqlite', nargs='?', choices=['sqlite', 'postgresql', 'mysql'], help='type of database')
 parser.add_argument('--dbpasswd', nargs='?', help='database password')
+parser.add_argument('--clean_artist_numbers', action='store_true', help='Clean bracketed numbers in artists')
 parser.add_argument('--clean_label_numbers', action='store_true', help='Clean bracketed numbers in labels')
 parser.add_argument('--clean_formats', action='store_true', help='Consolidate formats')
-parser.add_argument('--format_file', default='format_dict.txt', nargs='?', help='format mapping file')
 
 args = parser.parse_args()
 print(args)
@@ -161,6 +161,10 @@ for row in items:
   d=dict(row)
   for k in d.keys():
     if k == "Artist":
+      if args.clean_artist_numbers:
+        artist = re.sub("\(\d+\)$", "", d[k])
+      else:
+        artist = d[k]
       art_id = get_id(cur, "discogs_artist", "artist", d[k])
     elif k == "Format":
       if args.clean_formats:
