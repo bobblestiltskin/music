@@ -74,14 +74,33 @@ def get_id(cur, db, field, value):
   row = cur.fetchone()
   return row[0]
  
-def format_csv_to_db(format):
-  import ast
+def clean_label(input):
+  if args.clean_label_numbers:
+    output = re.sub("\(\d+\)\s*$", "", input)
+    output = re.sub("\(\d+\),", ",", output)
+  else:
+    output = input
 
-  b=re.sub(",.*", "", format)
-  b=re.sub("^\d+x", "", b)
-  b=re.sub(" \+.*", "", b)
+  return output
 
-  return b
+def clean_artist(input):
+  if args.clean_artist_numbers:
+    output = re.sub("\(\d+\)\s*$", "", input)
+    output = re.sub("\s+\(\d+\)\s+", " ", output)
+  else:
+    output = input
+
+  return output
+
+def clean_format(input):
+  if args.clean_formats:
+    output=re.sub(",.*", "", input)
+    output=re.sub("^\d+x", "", output)
+    output=re.sub(" \+.*", "", output)
+  else:
+    output = input
+
+  return output
 
 parser = argparse.ArgumentParser(description='Convert discogs.com collection CSV file to SQL tables.')
 parser.add_argument('csv_file', metavar='CSV_filename', nargs='?', help='collections CSV file from discogs.com')
@@ -111,23 +130,11 @@ for row in obj:
   for k in d.keys():
 #    print ("%s => %s" % (k,d[k]))
     if k == "Artist":
-      if args.clean_artist_numbers:
-        artist = re.sub("\(\d+\)$", "", d[k])
-      else:
-        artist = d[k]
-      artists.add(artist)
+      artists.add(clean_artist(d[k]))
     elif k == "Format":
-      if args.clean_formats:
-        format = format_csv_to_db(d[k])
-      else:
-        format = d[k]
-      formats.add(format)
+      formats.add(clean_format(d[k]))
     elif k == "Label":
-      if args.clean_label_numbers:
-        label = re.sub("\(\d+\)$", "", d[k])
-      else:
-        label = d[k]
-      labels.add(label)
+      labels.add(clean_label(d[k]))
     elif k == "release_id":
       if d[k] in id: # filter out any duplicates
         add = False
@@ -165,23 +172,11 @@ for row in items:
   d=dict(row)
   for k in d.keys():
     if k == "Artist":
-      if args.clean_artist_numbers:
-        artist = re.sub("\(\d+\)$", "", d[k])
-      else:
-        artist = d[k]
-      art_id = get_id(cur, "discogs_artist", "artist", artist)
+      art_id = get_id(cur, "discogs_artist", "artist", clean_artist(d[k]))
     elif k == "Format":
-      if args.clean_formats:
-        format = format_csv_to_db(d[k])
-      else:
-        format = d[k]
-      for_id = get_id(cur, "discogs_format", "format", format)
+      for_id = get_id(cur, "discogs_format", "format", clean_format(d[k]))
     elif k == "Label":
-      if args.clean_label_numbers:
-        label = re.sub("\(\d+\)$", "", d[k])
-      else:
-        label = d[k]
-      lab_id = get_id(cur, "discogs_label", "label", label)
+      lab_id = get_id(cur, "discogs_label", "label", clean_label(d[k]))
   if dbtype == "sqlite":
     ins = "insert into discogs_item(catalogue_number, title, released, release_id, artist_id, format_id, label_id) values(?, ?, ?, ?, ?, ?, ?)"
     vals = (d["Catalog#"], d["Title"], d["Released"], d["release_id"], art_id, for_id, lab_id)
