@@ -111,7 +111,11 @@ for row in obj:
   for k in d.keys():
 #    print ("%s => %s" % (k,d[k]))
     if k == "Artist":
-      artists.add(d[k])
+      if args.clean_artist_numbers:
+        artist = re.sub("\(\d+\)$", "", d[k])
+      else:
+        artist = d[k]
+      artists.add(artist)
     elif k == "Format":
       if args.clean_formats:
         format = format_csv_to_db(d[k])
@@ -165,7 +169,7 @@ for row in items:
         artist = re.sub("\(\d+\)$", "", d[k])
       else:
         artist = d[k]
-      art_id = get_id(cur, "discogs_artist", "artist", d[k])
+      art_id = get_id(cur, "discogs_artist", "artist", artist)
     elif k == "Format":
       if args.clean_formats:
         format = format_csv_to_db(d[k])
