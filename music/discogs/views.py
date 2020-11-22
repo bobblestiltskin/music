@@ -17,12 +17,8 @@ from .forms import SearchForm
 import re
 
 def index(request):
-    artist_list = get_list_or_404(Artist)
-    label_list = get_list_or_404(Label)
-    format_list = get_list_or_404(Format)
-    item_list = get_list_or_404(Item)
     form = SearchForm()
-    context = {'artist_list': artist_list, 'label_list': label_list, 'format_list': format_list, 'item_list': item_list, 'form' : form}
+    context = {'form' : form}
     return render(request, 'discogs/index.html', context)
 
 def collate_item_list(item_list):
