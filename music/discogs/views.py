@@ -33,7 +33,7 @@ def index_search(request):
     format_id = request.POST['format_choice']
 #    text = request.POST['text_choice']
 
-    item_list = Item.objects.order_by('artist')
+    item_list = Item.objects.order_by('artist', 'released')
 
     if artist_id:
       item_list = item_list.filter(artist=artist_id)
